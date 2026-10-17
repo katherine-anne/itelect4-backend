@@ -15,8 +15,8 @@ const claimSchema = new Schema<ClaimDoc>({
   claimDate: { type: Date, default: Date.now },
   status: {
     type: String,
-    enum: ["approved", "rejected"],
-    default: "approved",
+    enum: ["pending", "approved", "rejected"],
+    default: "pending",
     required: true,
   },
   proof: {
