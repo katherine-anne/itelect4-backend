@@ -12,7 +12,7 @@ import type {
 export const claimRouter = Router();
 claimRouter.use(requireAuth);
 
-interface IdParam {
+interface IdParam extends Record<string, string> {
   id: string;
 }
 
