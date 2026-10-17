@@ -2,13 +2,17 @@ import { Router, type Request, type Response } from "express";
 import mongoose from "mongoose";
 import { ClaimModel } from "../models/Claim";
 import { ItemModel } from "../models/Item";
-import { requireAuth } from "../middleware/auth";
-import type { ClaimUpdateBody, NewClaimBody } from "../types/index";
+import { requireAuth, requireRole } from "../middleware/auth";
+import type {
+  ClaimDecisionBody,
+  ClaimUpdateBody,
+  NewClaimBody,
+} from "../types/index";
 
 export const claimRouter = Router();
 claimRouter.use(requireAuth);
 
-interface IdParam {
+interface IdParam extends Record<string, string> {
   id: string;
 }
 
@@ -36,7 +40,8 @@ claimRouter.get("/", async (req: Request, res: Response) => {
   const claimantId = getClaimantId(req, res);
   if (!claimantId) return;
 
-  const claims = await ClaimModel.find({ claimantId }).sort({ claimDate: -1 });
+  const filter = req.userRole === "securityAdmin" ? {} : { claimantId };
+  const claims = await ClaimModel.find(filter).sort({ claimDate: -1 });
   res.json(claims);
 });
 
@@ -92,10 +97,52 @@ claimRouter.post(
       itemId,
       proof,
       claimantId,
-      status: "approved",
+      status: "pending",
     });
 
     res.status(201).json(claim);
+  },
+);
+
+claimRouter.patch(
+  "/:id/status",
+  requireRole("securityAdmin"),
+  async (
+    req: Request<IdParam, unknown, ClaimDecisionBody>,
+    res: Response,
+  ) => {
+    if (!isRecord(req.body)) {
+      res.status(400).json({ message: "A JSON request body is required" });
+      return;
+    }
+
+    const { status } = req.body;
+    if (status !== "approved" && status !== "rejected") {
+      res.status(400).json({
+        message: "status must be approved or rejected",
+      });
+      return;
+    }
+
+    const claim = await ClaimModel.findOneAndUpdate(
+      { _id: req.params.id, status: "pending" },
+      { status },
+      { returnDocument: "after", runValidators: true },
+    );
+
+    if (!claim) {
+      const exists = await ClaimModel.exists({ _id: req.params.id });
+      res
+        .status(exists ? 409 : 404)
+        .json({
+          message: exists
+            ? "Only pending claims can be decided"
+            : "No claim with that id",
+        });
+      return;
+    }
+
+    res.json(claim);
   },
 );
 

@@ -5,16 +5,13 @@ import { getJwtSecret } from "./config/jwt";
 
 const port = Number(process.env.PORT) || 4000;
 
-// Fail before listening if either required secret/config value is missing.
+// Validate the JWT secret before accepting local requests.
 getJwtSecret();
 
-connectDB()
-  .then(() => {
-    app.listen(port, () => {
-      console.log(`API on http://localhost:${port}`);
-    });
-  })
-  .catch((error: unknown) => {
-    console.error("Could not start:", error);
-    process.exit(1);
-  });
+void connectDB().catch((error: unknown) => {
+  console.error("Could not connect to MongoDB:", error);
+});
+
+app.listen(port, () => {
+  console.log(`API listening on port ${port}`);
+});

@@ -2,15 +2,17 @@ import type { Types } from "mongoose";
 
 // The application-domain interfaces from the frontend project.
 export interface User {
-  id: number;
+  id: string;
   name: string;
   email: string;
-  role: "student" | "securityAdmin";
+  role: UserRole;
   isActive: boolean;
 }
 
+export type UserRole = "student" | "securityAdmin";
+
 export interface Item {
-  id: number;
+  id: string;
   itemName: string;
   description: string;
   location: string;
@@ -20,13 +22,16 @@ export interface Item {
 }
 
 export interface Claim {
-  id: number;
-  itemId: number;
-  claimantId: number;
+  id: string;
+  itemId: string;
+  claimantId: string;
   claimDate: Date;
-  status: "approved" | "rejected";
+  status: ClaimStatus;
   proof: string;
 }
+
+export type ClaimStatus = "pending" | "approved" | "rejected";
+export type ClaimDecision = Exclude<ClaimStatus, "pending">;
 
 // MongoDB supplies document IDs. Claim references use MongoDB ObjectIds.
 export type UserDoc = Omit<User, "id"> & { password: string };
@@ -44,6 +49,10 @@ export interface NewClaimBody {
 }
 
 export type ClaimUpdateBody = Partial<NewClaimBody>;
+
+export interface ClaimDecisionBody {
+  status: ClaimDecision;
+}
 
 export interface RegisterBody {
   name: string;
