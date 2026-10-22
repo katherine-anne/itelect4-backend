@@ -1,6 +1,6 @@
 import type { Review } from "../schemas/review";
 
-export const MODEL = "gemini-flash-latest";
+export const MODEL = "gemini-3.5-flash-lite";
 
 export const SYSTEM_PROMPT = `
 You review project descriptions for the Campus Lost & Found Tracker, an
