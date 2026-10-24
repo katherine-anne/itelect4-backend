@@ -1,5 +1,7 @@
 # Campus Lost & Found Tracker API
 
+[![CI](https://github.com/katherine-anne/itelect4-backend/actions/workflows/ci.yml/badge.svg)](https://github.com/katherine-anne/itelect4-backend/actions/workflows/ci.yml)
+
 Backend API for the Campus Lost & Found Tracker.
 
 ## Live deployments
