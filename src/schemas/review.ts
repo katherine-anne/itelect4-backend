@@ -1,35 +1,31 @@
 import { z } from "zod";
 
-// Validate the request before spending a Gemini call or quota.
-export const aiRequestSchema = z.object({
-  prompt: z
+export const claimProofRequestSchema = z.object({
+  proof: z
     .string()
     .trim()
-    .min(20, "Describe your project in at least 20 characters.")
-    .max(2000, "Keep the description under 2000 characters."),
+    .min(20, "Explain your ownership proof in at least 20 characters.")
+    .max(2000, "Keep your proof explanation under 2000 characters."),
 });
 
-// This schema defines the API response, Gemini's JSON schema, and the
-// server-side validation applied before a reply is returned to the browser.
-export const reviewSchema = z.object({
+export const claimProofReviewSchema = z.object({
   summary: z
     .string()
-    .describe("One sentence restating what the student built."),
-  strengths: z
+    .describe("One short sentence about how clear the explanation is."),
+  helpfulDetails: z
     .array(z.string())
-    .min(1)
     .max(3)
-    .describe("What the project description shows was done well."),
-  improvements: z
+    .describe(
+      "Specific identifying details already included that may help a human reviewer.",
+    ),
+  suggestions: z
     .array(z.string())
-    .min(1)
     .max(3)
-    .describe("Concrete things to fix or add before submitting."),
-  readiness: z
-    .enum(["ready", "almost", "not-yet"])
-    .describe("How close the project is to being submitted."),
+    .describe(
+      "Accurate, non-sensitive details the claimant could add if they are true.",
+    ),
 });
 
-export type Review = z.infer<typeof reviewSchema>;
+export type ClaimProofReview = z.infer<typeof claimProofReviewSchema>;
 
-export const reviewJsonSchema = z.toJSONSchema(reviewSchema);
+export const claimProofReviewJsonSchema = z.toJSONSchema(claimProofReviewSchema);

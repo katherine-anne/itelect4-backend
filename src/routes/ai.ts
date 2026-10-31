@@ -1,9 +1,9 @@
 import { ApiError } from "@google/genai";
 import { rateLimit } from "express-rate-limit";
 import { Router, type Request, type Response } from "express";
-import { AiReplyError, reviewProject } from "../ai/gemini";
+import { AiReplyError, reviewClaimProof } from "../ai/gemini";
 import { requireAuth } from "../middleware/auth";
-import { aiRequestSchema } from "../schemas/review";
+import { claimProofRequestSchema } from "../schemas/review";
 
 export const aiRouter = Router();
 
@@ -17,14 +17,14 @@ const aiLimiter = rateLimit({
   standardHeaders: "draft-8",
   legacyHeaders: false,
   message: {
-    message: "Five reviews a minute is the limit. Try again shortly.",
+    message: "Five proof reviews a minute is the limit. Try again shortly.",
   },
 });
 
 aiRouter.use(aiLimiter);
 
 aiRouter.post("/", async (req: Request, res: Response) => {
-  const parsed = aiRequestSchema.safeParse(req.body);
+  const parsed = claimProofRequestSchema.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({
       message: "Validation failed",
@@ -34,7 +34,7 @@ aiRouter.post("/", async (req: Request, res: Response) => {
   }
 
   try {
-    const review = await reviewProject(parsed.data.prompt);
+    const review = await reviewClaimProof(parsed.data.proof);
     res.json(review);
   } catch (error) {
     if (error instanceof ApiError && error.status === 429) {

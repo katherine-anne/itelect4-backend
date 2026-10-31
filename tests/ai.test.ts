@@ -44,7 +44,7 @@ describe("POST /api/ai", () => {
   it("answers 401 when there is no token", async () => {
     const response = await request(app)
       .post("/api/ai")
-      .send({ prompt: "A lost and found tracker for campus." });
+      .send({ proof: "My black backpack has a red patch on the front." });
 
     expect(response.status).toBe(401);
     expect(response.body.message).toBe(
@@ -58,7 +58,7 @@ describe("POST /api/ai", () => {
     const response = await request(app)
       .post("/api/ai")
       .set("Authorization", `Bearer ${forged}`)
-      .send({ prompt: "A lost and found tracker for campus." });
+      .send({ proof: "My black backpack has a red patch on the front." });
 
     expect(response.status).toBe(401);
     expect(response.body.message).toBe("Token is invalid or has expired");
@@ -71,11 +71,11 @@ describe("POST /api/ai", () => {
     const response = await request(app)
       .post("/api/ai")
       .set("Authorization", `Bearer ${tokenFor("test-user-id")}`)
-      .send({ prompt: "Too short" });
+      .send({ proof: "Too short" });
 
     expect(response.status).toBe(400);
     expect(response.body.errors).toEqual([
-      "Describe your project in at least 20 characters.",
+      "Explain your ownership proof in at least 20 characters.",
     ]);
     expect(findById).toHaveBeenCalledWith("test-user-id");
   });

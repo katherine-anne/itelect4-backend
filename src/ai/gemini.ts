@@ -1,9 +1,9 @@
 import { GoogleGenAI, type Content } from "@google/genai";
-import { EXAMPLES, MODEL, SYSTEM_PROMPT, wrap } from "./prompt";
+import { EXAMPLES, MODEL, SYSTEM_PROMPT, wrapClaimProof } from "./prompt";
 import {
-  reviewJsonSchema,
-  reviewSchema,
-  type Review,
+  claimProofReviewJsonSchema,
+  claimProofReviewSchema,
+  type ClaimProofReview,
 } from "../schemas/review";
 
 let client: GoogleGenAI | null = null;
@@ -21,28 +21,30 @@ function getClient(): GoogleGenAI {
   return client;
 }
 
-function buildContents(description: string): Content[] {
+function buildContents(proof: string): Content[] {
   const examples: Content[] = EXAMPLES.flatMap((example) => [
-    { role: "user", parts: [{ text: wrap(example.description) }] },
+    { role: "user", parts: [{ text: wrapClaimProof(example.proof) }] },
     { role: "model", parts: [{ text: JSON.stringify(example.review) }] },
   ]);
 
   return [
     ...examples,
-    { role: "user", parts: [{ text: wrap(description) }] },
+    { role: "user", parts: [{ text: wrapClaimProof(proof) }] },
   ];
 }
 
 export class AiReplyError extends Error {}
 
-export async function reviewProject(description: string): Promise<Review> {
+export async function reviewClaimProof(
+  proof: string,
+): Promise<ClaimProofReview> {
   const response = await getClient().models.generateContent({
     model: MODEL,
-    contents: buildContents(description),
+    contents: buildContents(proof),
     config: {
       systemInstruction: SYSTEM_PROMPT,
       responseMimeType: "application/json",
-      responseJsonSchema: reviewJsonSchema,
+      responseJsonSchema: claimProofReviewJsonSchema,
     },
   });
 
@@ -58,7 +60,7 @@ export async function reviewProject(description: string): Promise<Review> {
     throw new AiReplyError("Gemini's reply was not JSON");
   }
 
-  const result = reviewSchema.safeParse(data);
+  const result = claimProofReviewSchema.safeParse(data);
   if (!result.success) {
     throw new AiReplyError("Gemini's reply did not match the schema");
   }
